@@ -1,13 +1,18 @@
 import { StyleSheet, View } from 'react-native'
-import { useContext, useLayoutEffect } from 'react'
+import { useContext, useLayoutEffect, useState } from 'react'
 import IconButton from '../components/ui/IconButton'
 import { GlobalStyles } from '../constants/styles'
-import Button from '../components/ui/Button'
 import { ExpensesContext } from '../store/expense-context'
+import ExpenseForm from '../components/ManageExpense/ExpenseForm'
+import { deleteExpense, storeExpense, updateExpense } from '../util/http'
+import Loading from '../components/ui/Loading'
 
 const ManageExpense = ({ route, navigation }) => {
+    const [error, setError] = useState()
+    const [isLoading, setIsLoading] = useState(false)
     const expensesContext = useContext(ExpensesContext)
     const editedExpenseId = route.params?.expenseId
+    const selectedExpense = expensesContext.expenses.find(el => el.id === editedExpenseId)
 
     const isEditing = !!editedExpenseId
 
@@ -16,34 +21,53 @@ const ManageExpense = ({ route, navigation }) => {
             title: isEditing ? 'Edit Expense' : 'Add Expense',
         })
     }, [navigation, isEditing])
-    const deleteExpenseHandler = () => {
-        navigation.goBack()
-        expensesContext.deleteExpense(editedExpenseId)
+
+    async function deleteExpenseHandler() {
+        setIsLoading(true)
+        try {
+            await deleteExpense(editedExpenseId)
+            navigation.goBack()
+            expensesContext.deleteExpense(editedExpenseId)
+        } catch (error) {
+            setError('Cant delete expense!')
+            setIsLoading(false)
+        }
+
     }
 
     const onCancelhandler = () => {
         navigation.goBack()
     }
-    const onConfirmHandler = () => {
-        if (isEditing) {
-            expensesContext.updateExpense(editedExpenseId, {
-                description: 'Check',
-                amount: 99,
-                date: new Date('2023-05-28'),
-            })
-        } else {
-            expensesContext.addExpense({ description: '', amount: 99, date: new Date('2023-05-28') })
+
+    async function onConfirmHandler(expenseData) {
+        setIsLoading(true)
+        try {
+            if (isEditing) {
+                expensesContext.updateExpense(editedExpenseId, expenseData)
+                await updateExpense(editedExpenseId, expenseData)
+            } else {
+                const id = await storeExpense(expenseData)
+                expensesContext.addExpense({ ...expenseData, id: id })
+            }
+            navigation.goBack()
+        } catch (error) {
+            setError('Can`t update expenses!')
+            setIsLoading(false)
         }
 
-        navigation.goBack()
     }
 
 
+    if (error && !isLoading) {
+        return <Error message={error} />
+    }
+    if (isLoading) {
+        return <Loading />
+    }
+
     return <View style={styles.container}>
-        <View style={styles.buttonContainer}>
-            <Button mode={'flat'} onPress={onCancelhandler} style={styles.btn}>Cancel</Button>
-            <Button onPress={onConfirmHandler} style={styles.btn}>{isEditing ? 'Update' : 'Add'}</Button>
-        </View>
+        <ExpenseForm onCancel={onCancelhandler} submitButtonLabel={isEditing ? 'Update ' : 'Add'}
+                     onSubmit={onConfirmHandler} defaultValue={selectedExpense} />
         {isEditing &&
             <View style={styles.deleteContainer}>
                 <IconButton icon={'trash'} size={36} color={GlobalStyles.colors.error500}
