@@ -1,11 +1,12 @@
 import { StyleSheet, Text, View } from 'react-native'
 import { GlobalStyles } from '../../constants/styles'
+import { memo, useMemo } from 'react'
 
 const ExpensesSummary = ({ expenses, periodName }) => {
 
-    const expensesSum = expenses.reduce((sum, expense) => {
+    const expensesSum = useMemo(() => expenses.reduce((sum, expense) => {
         return sum + expense.amount
-    }, 0)
+    }, 0), [expenses])
 
 
     return <View style={styles.container}>
@@ -17,7 +18,7 @@ const ExpensesSummary = ({ expenses, periodName }) => {
         </Text>
     </View>
 }
-export default ExpensesSummary
+export default memo(ExpensesSummary)
 
 
 const styles = StyleSheet.create({

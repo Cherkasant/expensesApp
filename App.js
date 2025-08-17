@@ -27,17 +27,20 @@ const ExpensesOverview = () => {
                     navigation.navigate('ManageExpense')
                 }} />
             },
+            lazy: true,
         })}>
         <BottomTabs.Screen name={'RecentExpenses'} component={RecentExpense} options={{
             title: 'Recent Expenses', tabBarLabel: 'Recent', tabBarIcon: ({ color, size }) => {
                 return <Ionicons name={'hourglass'} size={size} color={color} />
             },
+            freezeOnBlur: true,
         }
         } />
         <BottomTabs.Screen name={'AllExpenses'} component={AllExpenses} options={{
             title: 'All Expenses', tabBarLabel: 'All', tabBarIcon: ({ color, size }) => {
                 return <Ionicons name={'calendar'} size={size} color={color} />
             },
+            freezeOnBlur: true,
         }
         } />
     </BottomTabs.Navigator>

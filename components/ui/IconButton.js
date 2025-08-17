@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
+import { memo } from 'react'
 
 const IconButton = ({ icon, size, color, onPress }) => {
     return <Pressable onPress={onPress} style={({ pressed }) => pressed && styles.pressed}>
@@ -9,7 +10,7 @@ const IconButton = ({ icon, size, color, onPress }) => {
     </Pressable>
 }
 
-export default IconButton
+export default memo(IconButton)
 
 const styles = StyleSheet.create({
     container: {

@@ -1,4 +1,4 @@
-import { createContext, useReducer } from 'react'
+import { createContext, useReducer, useCallback, useMemo } from 'react'
 
 
 export const ExpensesContext = createContext({
@@ -17,7 +17,7 @@ export const ExpensesContext = createContext({
 const expensesReducer = (state, action) => {
     switch (action.type) {
         case 'SET':
-            const reverse = action.payload.reverse()
+            const reverse = action.payload.slice().reverse()
             return reverse
         case 'ADD':
 
@@ -39,27 +39,27 @@ const expensesReducer = (state, action) => {
 const ExpensesContextProvider = ({ children }) => {
     const [expensesState, dispatch] = useReducer(expensesReducer, [])
 
-    const addExpense = (expenseData) => {
+    const addExpense = useCallback((expenseData) => {
         dispatch({ type: 'ADD', payload: expenseData })
-    }
-    const deleteExpense = (id) => {
+    }, [])
+    const deleteExpense = useCallback((id) => {
         dispatch({ type: 'DELETE', payload: id })
-    }
-    const updateExpense = (id, expenseData) => {
+    }, [])
+    const updateExpense = useCallback((id, expenseData) => {
         dispatch({ type: 'UPDATE', payload: { id: id, data: expenseData } })
-    }
+    }, [])
 
-    const setExpense = (expenses) => {
+    const setExpense = useCallback((expenses) => {
         dispatch({ type: 'SET', payload: expenses })
-    }
+    }, [])
 
-    const value = {
+    const value = useMemo(() => ({
         expenses: expensesState,
         addExpense: addExpense,
         deleteExpense: deleteExpense,
         updateExpense: updateExpense,
         setExpense: setExpense,
-    }
+    }), [expensesState, addExpense, deleteExpense, updateExpense, setExpense])
 
     return <ExpensesContext.Provider value={value}>{children}</ExpensesContext.Provider>
 }

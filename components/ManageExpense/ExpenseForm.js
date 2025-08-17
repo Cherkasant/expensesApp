@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native'
 import Input from './Input'
-import { useState } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import Button from '../ui/Button'
 import { getFormattedDate } from '../../util/date'
 import { GlobalStyles } from '../../constants/styles'
@@ -8,20 +8,24 @@ import { GlobalStyles } from '../../constants/styles'
 const ExpenseForm = ({ onCancel, onSubmit, submitButtonLabel, defaultValue }) => {
     
 
-    const initialState = {
+    const initialState = useMemo(() => ({
         amount: { value: defaultValue ? defaultValue.amount.toString() : '', isValid: true },
         date: { value: defaultValue ? getFormattedDate(defaultValue.date) : '', isValid: true },
         description: { value: defaultValue ? defaultValue.description : '', isValid: true },
-    }
+    }), [defaultValue])
     const [inputs, setInputs] = useState(initialState)
 
-    const inputChangeHandler = (inputIdentifier, value) => {
+    const inputChangeHandler = useCallback((inputIdentifier, value) => {
         setInputs((prev) => {
             return { ...prev, [inputIdentifier]: { value: value, isValid: true } }
         })
-    }
+    }, [])
 
-    const submitHandler = () => {
+    const onChangeAmount = useCallback((value) => inputChangeHandler('amount', value), [inputChangeHandler])
+    const onChangeDate = useCallback((value) => inputChangeHandler('date', value), [inputChangeHandler])
+    const onChangeDescription = useCallback((value) => inputChangeHandler('description', value), [inputChangeHandler])
+
+    const submitHandler = useCallback(() => {
         const expenseDate = {
             amount: +inputs.amount.value,
             date: new Date(inputs.date.value),
@@ -42,7 +46,7 @@ const ExpenseForm = ({ onCancel, onSubmit, submitButtonLabel, defaultValue }) =>
             return
         }
         onSubmit(expenseDate)
-    }
+    }, [inputs, onSubmit])
     const formIsInvalid = !inputs.amount.isValid || !inputs.date.isValid || !inputs.description.isValid
 
     return <View style={styles.container}>
@@ -52,17 +56,17 @@ const ExpenseForm = ({ onCancel, onSubmit, submitButtonLabel, defaultValue }) =>
                    invalid={!inputs.amount.isValid}
                    textInputConfig={{
                        keyboardType: 'decimal-pad',
-                       onChangeText: inputChangeHandler.bind(this, 'amount'),
+                       onChangeText: onChangeAmount,
                        value: inputs.amount.value,
                    }}
                    style={styles.inputFLex} />
             <Input label={'Date'} invalid={!inputs.date.isValid} textInputConfig={{
-                placeholder: 'YYYY-MM-DD', maxLength: 10, onChangeText: inputChangeHandler.bind(this, 'date'),
+                placeholder: 'YYYY-MM-DD', maxLength: 10, onChangeText: onChangeDate,
                 value: inputs.date.value,
             }} style={styles.inputFLex} />
         </View>
         <Input label={'Description'} invalid={!inputs.description.isValid} textInputConfig={{
-            multiline: true, onChangeText: inputChangeHandler.bind(this, 'description'),
+            multiline: true, onChangeText: onChangeDescription,
             value: inputs.description.value,
         }} />
         {formIsInvalid &&

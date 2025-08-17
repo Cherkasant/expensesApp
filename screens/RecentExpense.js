@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native'
 import ExpensesOutput from '../components/ExpensesOutput/ExpensesOutput'
-import { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useMemo, useState } from 'react'
 import { getDateMinusDays } from '../util/date'
 import { getExpenses } from '../util/http'
 import { ExpensesContext } from '../store/expense-context'
@@ -39,11 +39,13 @@ const RecentExpense = () => {
         return <Loading />
     }
 
-    const recentExpenses = expensesContext.expenses.filter((expense) => {
+    const recentExpenses = useMemo(() => {
         const today = new Date()
         const date7Days = getDateMinusDays(today, 7)
-        return (expense.date >= date7Days) && (expense.date <= today)
-    })
+        return expensesContext.expenses.filter((expense) => {
+            return (expense.date >= date7Days) && (expense.date <= today)
+        })
+    }, [expensesContext.expenses])
 
     return <ExpensesOutput expenses={recentExpenses} expensesPeriod={'last 7 days'} text={'No expenses yet...'} />
 }
