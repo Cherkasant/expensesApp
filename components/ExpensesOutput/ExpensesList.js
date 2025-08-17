@@ -1,16 +1,26 @@
 import { FlatList, StyleSheet } from 'react-native'
 import ExpenseItem from './ExpenseItem'
+import { memo, useCallback } from 'react'
 
-
-const renderExpenseItem = (itemData) => {
-    return <ExpenseItem {...itemData.item} />
-}
 
 const ExpensesList = ({ expenses }) => {
-    return <FlatList data={expenses} renderItem={renderExpenseItem} keyExtractor={(item) => item.id} />
+    const renderExpenseItem = useCallback((itemData) => {
+        return <ExpenseItem {...itemData.item} />
+    }, [])
+
+    return <FlatList
+        data={expenses}
+        renderItem={renderExpenseItem}
+        keyExtractor={(item) => item.id}
+        initialNumToRender={10}
+        windowSize={5}
+        maxToRenderPerBatch={10}
+        updateCellsBatchingPeriod={30}
+        removeClippedSubviews
+    />
 }
 
-export default ExpensesList
+export default memo(ExpensesList)
 
 
 const styles = StyleSheet.create({})

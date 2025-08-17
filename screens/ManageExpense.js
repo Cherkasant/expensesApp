@@ -1,18 +1,21 @@
 import { StyleSheet, View } from 'react-native'
-import { useContext, useLayoutEffect, useState } from 'react'
+import { useContext, useLayoutEffect, useMemo, useState, useCallback } from 'react'
 import IconButton from '../components/ui/IconButton'
 import { GlobalStyles } from '../constants/styles'
 import { ExpensesContext } from '../store/expense-context'
 import ExpenseForm from '../components/ManageExpense/ExpenseForm'
 import { deleteExpense, storeExpense, updateExpense } from '../util/http'
 import Loading from '../components/ui/Loading'
+import Error from '../components/ui/Error'
 
 const ManageExpense = ({ route, navigation }) => {
     const [error, setError] = useState()
     const [isLoading, setIsLoading] = useState(false)
     const expensesContext = useContext(ExpensesContext)
     const editedExpenseId = route.params?.expenseId
-    const selectedExpense = expensesContext.expenses.find(el => el.id === editedExpenseId)
+    const selectedExpense = useMemo(() => (
+        expensesContext.expenses.find(el => el.id === editedExpenseId)
+    ), [expensesContext.expenses, editedExpenseId])
 
     const isEditing = !!editedExpenseId
 
@@ -22,7 +25,7 @@ const ManageExpense = ({ route, navigation }) => {
         })
     }, [navigation, isEditing])
 
-    async function deleteExpenseHandler() {
+    const deleteExpenseHandler = useCallback(async () => {
         setIsLoading(true)
         try {
             await deleteExpense(editedExpenseId)
@@ -33,13 +36,13 @@ const ManageExpense = ({ route, navigation }) => {
             setIsLoading(false)
         }
 
-    }
+    }, [editedExpenseId, expensesContext, navigation])
 
-    const onCancelhandler = () => {
+    const onCancelhandler = useCallback(() => {
         navigation.goBack()
-    }
+    }, [navigation])
 
-    async function onConfirmHandler(expenseData) {
+    const onConfirmHandler = useCallback(async (expenseData) => {
         setIsLoading(true)
         try {
             if (isEditing) {
@@ -51,11 +54,11 @@ const ManageExpense = ({ route, navigation }) => {
             }
             navigation.goBack()
         } catch (error) {
-            setError('Can`t update expenses!')
+            setError('Can\'t update expenses!')
             setIsLoading(false)
         }
 
-    }
+    }, [editedExpenseId, expensesContext, isEditing, navigation])
 
 
     if (error && !isLoading) {
